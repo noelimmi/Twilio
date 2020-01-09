@@ -1,0 +1,153 @@
+
+// Configure the bot's incoming webhook URL in any third-party service to trigger this handler.
+response = Map();
+query_map = Map();
+criteria_string = "userid==" + user.get("id");
+query_map.put("criteria",criteria_string);
+checkdb = zoho.cliq.getRecords("twiliodetails",query_map,"databaseaccess");
+twilioNumber = checkdb.get("list").toList().get(0).toMap().get("twilionumber");
+userNumber = checkdb.get("list").toList().get(0).toMap().get("usernumber");
+accountSid = checkdb.get("list").toList().get(0).toMap().get("accountsid");
+authToken = checkdb.get("list").toList().get(0).toMap().get("authtoken");
+header = Map();
+header.put("Authorization","Basic " + zoho.encryption.base64Encode(accountSid + ":" + authToken));
+smsparam = Map();
+smsparam.put("From",twilioNumber);
+smsparam.put("To","+91" + userNumber);
+// When a new SMS is sent to registered Twilio Number 
+if(!params.get("From").equals("+91" + userNumber))
+{
+	smsparam.put("Body","Hi " + user.get("first_name") + ". It looks like " + params.get("From") + " tried to send sms to your twilio number. No worry as it is blocked :)");
+	send = invokeurl
+	[
+		url :"https://api.twilio.com/2010-04-01/Accounts/" + accountSid + "/Messages.json"
+		type :POST
+		parameters:smsparam
+		headers:header
+	];
+	info send;
+	response.put("text","Hi " + user.get("first_name") + ". It looks like " + params.get("From") + " tried to send sms to your twilio number. But don't worry, i blocked it :wink!: ");
+}
+else
+{
+	message = params.get("Body");
+	messageList = message.toList("\n");
+	if(message.trim().equalsIgnoreCase("POST") && message.trim().length() == 4)
+	{
+		smsparam.put("Body","Below is the format to post a message to user(s) :)\n\n<email-id 1>,<email-id 2>,...\n<Your message>");
+		send = invokeurl
+		[
+			url :"https://api.twilio.com/2010-04-01/Accounts/" + accountSid + "/Messages.json"
+			type :POST
+			parameters:smsparam
+			headers:header
+		];
+	}
+	else if(message.trim().equalsIgnoreCase("REMINDER") && message.trim().length() == 8)
+	{
+		smsparam.put("Body","Below is the format to set a self reminder :)\n\ncontent:<Your content>\nMM-DD-YYYY HH:MM\n\n(Use 24 Hour format in HH:MM)");
+		send = invokeurl
+		[
+			url :"https://api.twilio.com/2010-04-01/Accounts/" + accountSid + "/Messages.json"
+			type :POST
+			parameters:smsparam
+			headers:header
+		];
+	}
+	else if(messageList.get(0).containsIgnoreCase("CONTENT"))
+	{
+		try 
+		{
+			content = messageList.get(0).toList(":").get(1).trim();
+			dateTime = messageList.get(1).trim();
+			param = Map();
+			param = {"content":content,"time":dateTime.toTime().toLong() - 30 * 60000 - 12 * 3600000};
+			remainder = invokeurl
+			[
+				url :"https://cliq.zoho.com/api/v2/reminders"
+				type :POST
+				parameters:param.toString()
+				connection:"postandremainder"
+			];
+			smsparam.put("Body","Reminder created in Zoho Cliq successfully :)");
+			send = invokeurl
+			[
+				url :"https://api.twilio.com/2010-04-01/Accounts/" + accountSid + "/Messages.json"
+				type :POST
+				parameters:smsparam
+				headers:header
+			];
+			info send;
+			response.put("text","*Reminder creation* via SMS success :ThumbsUp: ");
+		}
+ catch (e)
+		{			smsparam.put("Body","Reminder creation failed :( Use proper format to set remainder.");
+			send = invokeurl
+			[
+				url :"https://api.twilio.com/2010-04-01/Accounts/" + accountSid + "/Messages.json"
+				type :POST
+				parameters:smsparam
+				headers:header
+			];
+			info send;
+			response.put("text","*Reminder creation* via SMS failed :ThumbsDown: Use proper format to set remainder");
+		}
+	}
+	//Check if Normal Message 
+	else if(messageList.get(0).containsIgnoreCase(".com"))
+	{
+		if(messageList.get(0).containsIgnoreCase(".com"))
+		{
+			messageBody = message.getSuffix(messageList.get(0));
+			//check if message contains single or multi users
+			if(messageList.get(0).contains(","))
+			{
+				//post to mutiusers
+				users = messageList.get(0).toList(",");
+				for each  user in users
+				{
+					zoho.cliq.postToUser(user.trim(),messageBody.trim());
+				}
+				smsparam.put("Body","Message posted to all the mentioned users in Zoho Cliq :)");
+				send = invokeurl
+				[
+					url :"https://api.twilio.com/2010-04-01/Accounts/" + accountSid + "/Messages.json"
+					type :POST
+					parameters:smsparam
+					headers:header
+				];
+				info send;
+				response.put("text","Message posted to all the mentioned users *via SMS* :smile!: ");
+			}
+			else
+			{
+				//post to single user
+				zoho.cliq.postToUser(messageList.get(0).trim(),messageBody.trim());
+				smsparam.put("Body","Message posted to the mentioned user in Zoho Cliq :)");
+				send = invokeurl
+				[
+					url :"https://api.twilio.com/2010-04-01/Accounts/" + accountSid + "/Messages.json"
+					type :POST
+					parameters:smsparam
+					headers:header
+				];
+				info send;
+				response.put("text","Message posted to the mentioned user *via SMS* :smile!: ");
+			}
+		}
+		else
+		{
+			smsparam.put("Body","Message contains no recipient email id(s) :(");
+			send = invokeurl
+			[
+				url :"https://api.twilio.com/2010-04-01/Accounts/" + accountSid + "/Messages.json"
+				type :POST
+				parameters:smsparam
+				headers:header
+			];
+			info send;
+			response.put("text","Message to be posted to the mentioned user *via SMS* failed :sad!: as the message does not contain recipient email id(s).");
+		}
+	}
+}
+return response;
