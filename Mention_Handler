@@ -1,0 +1,4 @@
+
+response = Map();
+return {"text":"### I am Twilio! :Love:","card":{"theme":"modern-inline"},"buttons":{{"label":"Send Sms","hint":"","action":{"type":"invoke.function","data":{"name":"BotMentionedButton"}},"key":"send_sms"},{"label":"Make Call","hint":"","action":{"type":"invoke.function","data":{"name":"BotMentionedButton"}},"key":"make_call"},{"label":"Send File","hint":"","action":{"type":"invoke.function","data":{"name":"BotMentionedButton"}},"key":"send_file"},{"label":"Alert-Send File","hint":"","action":{"type":"invoke.function","data":{"name":"BotMentionedButton"}},"key":"send_and_alert"}},"slides":{{"type":"text","title":"","data":"Have your teammates missed out appointments, running out of task or project due dates, or any important information? Never make them miss when i'm here :Cool!:"}}};
+//return response;
