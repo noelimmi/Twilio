@@ -1,0 +1,369 @@
+
+// This handler is triggered after collecting all the inputs specified by the context object in the message handler response.
+response = Map();
+query_map = Map();
+criteria_string = "userid==" + user.get("id");
+query_map.put("criteria",criteria_string);
+checkdb = zoho.cliq.getRecords("twiliodetails",query_map,"databaseaccess");
+if(checkdb.get("status").equalsIgnoreCase("SUCCESS") && checkdb.get("list").size() > 0)
+{
+	if(context_id.equals("sms"))
+	{
+		if(answers.get("enterOrChoose").get("text").equalsIgnoreCase("DIRECTLY ENTER NUMBERS"))
+		{
+			inputs = list();
+			inputs.add({"type":"text","name":"numbers","label":"Enter the numbers","hint":"Separate the numbers by a comma.","placeholder":"9629730176,9843114441","mandatory":true});
+			inputs.add({"type":"textarea","name":"message","label":"Enter your message","hint":"Remember: Sms character limit is 160 characters","placeholder":"To be done by Tuesday!","mandatory":true,"value":"To be done by Tuesday!"});
+			form = {"type":"form","title":"Send instant SMS","hint":"Inform your message by sending sms","name":"sendSmsByEntering","version":1,"button_label":"Send","actions":{"submit":{"type":"invoke.function","name":"InformContacts"}},"inputs":inputs};
+			return form;
+		}
+		else
+		{
+			contact_query = Map();
+			criteria_string = "addedby==" + user.get("id");
+			contact_query.put("criteria",criteria_string);
+			check_contacts_db = zoho.cliq.getRecords("contacts",contact_query);
+			if(check_contacts_db.get("status").equalsIgnoreCase("SUCCESS") && check_contacts_db.get("list").size() > 0)
+			{
+				contactsList = check_contacts_db.get("list");
+				showList = list();
+				for each  contact in contactsList
+				{
+					myMap = Map();
+					myMap.put("label",contact.get("name"));
+					myMap.put("value",contact.get("number"));
+					showList.add(myMap);
+				}
+			}
+			else
+			{
+				response.put("text","Sorry. You haven't added any contacts yet :sad!: Type \"Add contact\" to add your first contact :grinning!:");
+				return response;
+			}
+			formData = Map();
+			formData.put("type","select");
+			formData.put("multiple","true");
+			formData.put("name","numbers");
+			formData.put("label","Contacts");
+			formData.put("hint","Choose a contact");
+			formData.put("placeholder","Choose a contact");
+			formData.put("mandatory","true");
+			formData.put("options",showList);
+			info formData;
+			inputs = list();
+			inputs.add(formData);
+			inputs.add({"type":"textarea","name":"message","label":"Enter your message","hint":"Remember: Sms character limit is 160 characters","placeholder":"To be done by Tuesday","mandatory":true,"value":"To be done by Tuesday"});
+			form = {"type":"form","title":"Send instant SMS","hint":"Inform your message.","name":"sendSmsByChoosing","version":1,"button_label":"Send sms","actions":{"submit":{"type":"invoke.function","name":"InformContacts"}},"inputs":inputs};
+			return form;
+		}
+	}
+	else if(context_id.equals("call"))
+	{
+		if(answers.get("enterOrChoose").get("text").equalsIgnoreCase("DIRECTLY ENTER NUMBERS"))
+		{
+			inputs = list();
+			inputs.add({"type":"text","name":"numbers","label":"Enter the numbers","hint":"Separate the numbers by a comma.","placeholder":"9629730176,9843114441","mandatory":true});
+			inputs.add({"type":"textarea","name":"message","label":"Enter your message","hint":"Enter the message for the bot to inform","placeholder":"Hey! The conference will be started in 10 minutes.","mandatory":true,"value":"Hey! The conference will be started in 10 minutes."});
+			form = {"type":"form","title":"Make instant Call","hint":"Inform your message by making bot calls","name":"makeCallByEntering","version":1,"button_label":"Call","actions":{"submit":{"type":"invoke.function","name":"InformContacts"}},"inputs":inputs};
+			return form;
+		}
+		else
+		{
+			contact_query = Map();
+			criteria_string = "addedby==" + user.get("id");
+			contact_query.put("criteria",criteria_string);
+			check_contacts_db = zoho.cliq.getRecords("contacts",contact_query);
+			if(check_contacts_db.get("status").equalsIgnoreCase("SUCCESS") && check_contacts_db.get("list").size() > 0)
+			{
+				contactsList = check_contacts_db.get("list");
+				showList = list();
+				for each  contact in contactsList
+				{
+					myMap = Map();
+					myMap.put("label",contact.get("name"));
+					myMap.put("value",contact.get("number"));
+					showList.add(myMap);
+				}
+			}
+			else
+			{
+				response.put("text","Sorry. You haven't added any contacts yet :sad!: Type \"Add contact\" to add your first contact :grinning!:");
+				return response;
+			}
+			formData = Map();
+			formData.put("type","select");
+			formData.put("multiple","true");
+			formData.put("name","numbers");
+			formData.put("label","Contacts");
+			formData.put("hint","Choose a contact");
+			formData.put("placeholder","Choose a contact");
+			formData.put("mandatory","true");
+			formData.put("options",showList);
+			info formData;
+			inputs = list();
+			inputs.add(formData);
+			inputs.add({"type":"textarea","name":"message","label":"Enter your message","hint":"Enter the message for the bot to inform","placeholder":"Hey! The conference will be started in 10 minutes.","mandatory":true,"value":"Hey! The conference will be started in 10 minutes."});
+			form = {"type":"form","title":"Make instant Call","hint":"Inform your message.","name":"makeCallByChoosing","version":1,"button_label":"Call","actions":{"submit":{"type":"invoke.function","name":"InformContacts"}},"inputs":inputs};
+			return form;
+		}
+	}
+	else if(context_id.equals("file"))
+	{
+		if(answers.get("enterOrChoose").get("text").equalsIgnoreCase("DIRECTLY ENTER NUMBERS"))
+		{
+			inputs = list();
+			inputs.add({"type":"text","name":"numbers","label":"Enter the numbers","hint":"Separate the numbers by a comma.","placeholder":"9629730176,9843114441","mandatory":true});
+			inputs.add({"type":"file","hint":"Upload your file","name":"file","label":"Upload File","placeholder":"demo-file.png","mandatory":true,"multiple":false});
+			inputs.add({"type":"textarea","name":"message","label":"Enter your message","hint":"Enter the message to send along with the file.","placeholder":"Hey! Please go through the document asap!","mandatory":false});
+			form = {"type":"form","title":"Send files","hint":"Share files instantly via sms","name":"sendFileByEntering","version":1,"button_label":"Send","actions":{"submit":{"type":"invoke.function","name":"InformContacts"}},"inputs":inputs};
+			return form;
+		}
+		else
+		{
+			contact_query = Map();
+			criteria_string = "addedby==" + user.get("id");
+			contact_query.put("criteria",criteria_string);
+			check_contacts_db = zoho.cliq.getRecords("contacts",contact_query);
+			if(check_contacts_db.get("status").equalsIgnoreCase("SUCCESS") && check_contacts_db.get("list").size() > 0)
+			{
+				contactsList = check_contacts_db.get("list");
+				showList = list();
+				for each  contact in contactsList
+				{
+					myMap = Map();
+					myMap.put("label",contact.get("name"));
+					myMap.put("value",contact.get("number"));
+					showList.add(myMap);
+				}
+			}
+			else
+			{
+				response.put("text","Sorry. You haven't added any contacts yet :sad!: Type \"Add contact\" to add your first contact :grinning!:");
+				return response;
+			}
+			formData = Map();
+			formData.put("type","select");
+			formData.put("multiple","true");
+			formData.put("name","numbers");
+			formData.put("label","Contacts");
+			formData.put("hint","Choose a contact");
+			formData.put("placeholder","Choose a contact");
+			formData.put("mandatory","true");
+			formData.put("options",showList);
+			info formData;
+			inputs = list();
+			inputs.add(formData);
+			inputs.add({"type":"file","hint":"Upload your file","name":"file","label":"Upload File","placeholder":"demo-file.png","mandatory":true,"multiple":false});
+			inputs.add({"type":"textarea","name":"message","label":"Enter your message","hint":"Enter the message to send along with the file.","placeholder":"Hey! Please go through the document asap!","mandatory":false});
+			form = {"type":"form","title":"Send file","hint":"Share files instantly via sms","name":"sendFileByChoosing","version":1,"button_label":"Send","actions":{"submit":{"type":"invoke.function","name":"InformContacts"}},"inputs":inputs};
+			return form;
+		}
+	}
+	else if(context_id.equals("alert"))
+	{
+		if(answers.get("enterOrChoose").get("text").equalsIgnoreCase("DIRECTLY ENTER NUMBERS"))
+		{
+			inputs = list();
+			inputs.add({"type":"text","name":"numbers","label":"Enter the numbers","hint":"Separate the numbers by a comma.","placeholder":"9629730176,9843114441","mandatory":true});
+			inputs.add({"type":"textarea","name":"message","label":"Enter your message","hint":"Enter the message to be spoken by the bot via call.","placeholder":"Hey! I have sent you a file. Please read it.","mandatory":false});
+			inputs.add({"type":"file","hint":"Upload your file to be sent after the call is answered","name":"file","label":"Upload File","placeholder":"demo-file.png","mandatory":true,"multiple":false});
+			form = {"type":"form","title":"Send files and Alert Receiver","hint":"Call and alert the receiver. Then Share files via sms","name":"alertByEntering","version":1,"button_label":"Inform","actions":{"submit":{"type":"invoke.function","name":"InformContacts"}},"inputs":inputs};
+			return form;
+		}
+		else
+		{
+			contact_query = Map();
+			criteria_string = "addedby==" + user.get("id");
+			contact_query.put("criteria",criteria_string);
+			check_contacts_db = zoho.cliq.getRecords("contacts",contact_query);
+			if(check_contacts_db.get("status").equalsIgnoreCase("SUCCESS") && check_contacts_db.get("list").size() > 0)
+			{
+				contactsList = check_contacts_db.get("list");
+				showList = list();
+				for each  contact in contactsList
+				{
+					myMap = Map();
+					myMap.put("label",contact.get("name"));
+					myMap.put("value",contact.get("number"));
+					showList.add(myMap);
+				}
+			}
+			else
+			{
+				response.put("text","Sorry. You haven't added any contacts yet :sad!: Type \"Add contact\" to add your first contact :grinning!:");
+				return response;
+			}
+			formData = Map();
+			formData.put("type","select");
+			formData.put("multiple","true");
+			formData.put("name","numbers");
+			formData.put("label","Contacts");
+			formData.put("hint","Choose a contact");
+			formData.put("placeholder","Choose a contact");
+			formData.put("mandatory","true");
+			formData.put("options",showList);
+			info formData;
+			inputs = list();
+			inputs.add(formData);
+			inputs.add({"type":"textarea","name":"message","label":"Enter your message","hint":"Enter the message to be spoken by the bot via call.","placeholder":"Hey! I have sent you a file. Please read it.","mandatory":false});
+			inputs.add({"type":"file","hint":"Upload your file to be sent after the call is answered","name":"file","label":"Upload File","placeholder":"demo-file.png","mandatory":true,"multiple":false});
+			form = {"type":"form","title":"Send files and Alert Receiver","hint":"Call and alert the receiver. Then Share files via sms","name":"alertByChoosing","version":1,"button_label":"Inform","actions":{"submit":{"type":"invoke.function","name":"InformContacts"}},"inputs":inputs};
+			return form;
+		}
+	}
+	else if(context_id.equals("add_contact"))
+	{
+		if(answers.get("confirm").get("text").trim().containsIgnoreCase("YES"))
+		{
+			contact_name = answers.get("contact_name").get("text").trim();
+			contact_number = answers.get("contact_number").get("text").trim();
+			if(contact_number.contains("+") || !contact_number.matches("[0-9]{10}"))
+			{
+				response.put("text","Please enter the mobile number excluding your country code. The given number isn't accepted :sad!: ");
+				return response;
+			}
+			else
+			{
+				contact_query = Map();
+				criteria_string = "addedby==" + user.get("id") + "&& name==" + contact_name;
+				contact_query.put("criteria",criteria_string);
+				check_contacts_db = zoho.cliq.getRecords("contacts",contact_query,"databaseaccess");
+				if(check_contacts_db.get("status").equalsIgnoreCase("SUCCESS") && check_contacts_db.get("list").size() > 0)
+				{
+					response.put("text","The contact name already exists in your contacts list. Please give a different name.");
+					return response;
+				}
+				else
+				{
+					criteria_string = "addedby==" + user.get("id") + "&& number==" + contact_number;
+					contact_query.put("criteria",criteria_string);
+					check_contacts_db = zoho.cliq.getRecords("contacts",contact_query);
+					if(check_contacts_db.get("status").equalsIgnoreCase("SUCCESS") && check_contacts_db.get("list").size() > 0)
+					{
+						response.put("text","This number already exists in your contacts list and the contact name is *" + check_contacts_db.get("list").get(0).get("name") + "*. Please give a different number.");
+						return response;
+					}
+					else
+					{
+						values_map = Map();
+						values_map.put("name",contact_name);
+						values_map.put("addedby",user.get("id"));
+						values_map.put("number",contact_number);
+						add_map = zoho.cliq.createRecord("contacts",values_map);
+						if(add_map.get("status").equalsIgnoreCase("SUCCESS"))
+						{
+							response.put("text","Contact added successfully :party!:");
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			response.put("text","Fine. Add contact anytime later :wink!:");
+		}
+	}
+	else if(context_id.equals("accountsid_details"))
+	{
+		newSid = answers.get("sid").get("text").trim();
+		confirm = answers.get("confirm").get("text").trim();
+		if(confirm.containsIgnoreCase("YES"))
+		{
+			values_map = Map();
+			values_map.put("accountsid",newSid);
+			record_id = checkdb.get("list").get(0).get("id");
+			response_map = zoho.cliq.updateRecord("twiliodetails",record_id,values_map);
+			response.put("text","Twilio Account Sid updated :ThumbsUp: ");
+		}
+		else
+		{
+			response.put("text","I expected :wink!: And that's a good decision :cool!: ");
+		}
+	}
+	else if(context_id.equals("authtoken_details"))
+	{
+		newAuth = answers.get("auth").get("text").trim();
+		confirm = answers.get("confirm").get("text").trim();
+		if(confirm.containsIgnoreCase("YES"))
+		{
+			values_map = Map();
+			values_map.put("authtoken",newAuth);
+			record_id = checkdb.get("list").get(0).get("id");
+			response_map = zoho.cliq.updateRecord("twiliodetails",record_id,values_map);
+			response.put("text","Twilio Auth Token updated :ThumbsUp: ");
+		}
+		else
+		{
+			response.put("text","I expected :wink!: And that's a good decision :cool!: ");
+		}
+	}
+	else if(context_id.equals("usernumber_details"))
+	{
+		newUserNum = answers.get("usernum").get("text").trim();
+		confirm = answers.get("confirm").get("text").trim();
+		if(confirm.containsIgnoreCase("YES"))
+		{
+			values_map = Map();
+			values_map.put("usernumber",newUserNum);
+			record_id = checkdb.get("list").get(0).get("id");
+			response_map = zoho.cliq.updateRecord("twiliodetails",record_id,values_map);
+			response.put("text","Your mobile number has been updated :ThumbsUp: ");
+		}
+		else
+		{
+			response.put("text","I expected :wink!: And that's a good decision :cool!: ");
+		}
+	}
+	else if(context_id.equals("twilionumber_details"))
+	{
+		newTwilNum = answers.get("twilionum").get("text").trim();
+		confirm = answers.get("confirm").get("text").trim();
+		if(confirm.containsIgnoreCase("YES"))
+		{
+			values_map = Map();
+			values_map.put("twilionumber",newTwilNum);
+			record_id = checkdb.get("list").get(0).get("id");
+			response_map = zoho.cliq.updateRecord("twiliodetails",record_id,values_map);
+			response.put("text","Your Twilio number has been updated :ThumbsUp: ");
+		}
+		else
+		{
+			response.put("text","I expected :wink!: And that's a good decision :cool!: ");
+		}
+	}
+}
+else
+{
+	authMap = Map();
+	authMap.put("text","First is First :smile!: It seems like you need to authorize your Twilio acount.\nPlease authorize and then try again.");
+	bot = Map();
+	bot.put("name","Twilio");
+	bot.put("image","https://s3.amazonaws.com/com.twilio.prod.twilio-docs/images/twilio-mark-red.width-808.png");
+	authMap.put("bot",bot);
+	card = Map();
+	card.put("theme","prompt");
+	card.put("title","Twilio Authorization");
+	card.put("thumbnail","https://s3.amazonaws.com/com.twilio.prod.twilio-docs/images/twilio-mark-red.width-808.png");
+	authMap.put("card",card);
+	buttonsList = list();
+	buttonsList0 = Map();
+	buttonsList0.put("label","Authorize");
+	buttonsList0.put("type","+");
+	action = Map();
+	action.put("type","invoke.function");
+	data = Map();
+	data.put("name","twilioForm");
+	action.put("data",data);
+	buttonsList0.put("action",action);
+	buttonsList0.put("key","authorizeButton");
+	buttonsList.add(buttonsList0);
+	authMap.put("buttons",buttonsList);
+	return authMap;
+}
+remainder = invokeurl
+[
+	url :"https://cliq.zoho.com/api/v2/reminders"
+	type :GET
+	connection:"postandremainder"
+];
+return response;
