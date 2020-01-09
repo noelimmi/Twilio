@@ -1,0 +1,41 @@
+
+// Use the below given instant button's syntax to see how the function code is invoked! 
+response = Map();
+if(arguments.get("key").equals("dive_in_button"))
+{
+	zoho.cliq.postToBot("twilio",{"text":"*Twilio Bot* :Cool!:","bot":{"name":"Twilio","image":"https://cdn1.imggmi.com/uploads/2019/9/22/3b5524d353b5a8caac6cbbcc532edc20-full.png"},"card":{"title":"### Great! Here's Tip 1/5","theme":"modern-inline"},"slides":{{"type":"images","title":"","data":{"https://s3.gifyu.com/images/NewHeyGif2.gif"}},{"type":"text","title":"","buttons":{{"label":"Done. What's next?","hint":"","action":{"type":"invoke.function","data":{"name":"DiveIn"}},"key":"slash_commands"}},"data":"✔ You can *send sms* to any member(s) of your organization.\n✔ Make *programmed calls* to any member(s) of your organization.\n✔ *Send any file* as an sms to any member(s) of your organization by simply auto uploading to your zoho docs and transfering the shareable link.\n✔ Not just stop by sending a file *? Alert the receiver* by making programmed bot call, before sending a file as an sms.\n✔ Manage your personal *contacts*\n✔ *Update* your Twilio credentials\n\n:Task: You need to authorize your Twilio account to use these features"}}});
+}
+/*else if(arguments.get("key").equals("how_to_authorize"))
+{
+	zoho.cliq.postToBot("twilio",{"text":"Fill up the form that pops up when you use Twilio extension for the first time, with:","bot":{"name":"Twilio","image":"https://cdn1.imggmi.com/uploads/2019/9/22/3b5524d353b5a8caac6cbbcc532edc20-full.png"},"card":{"title":"### How to Authorize Twilio account?","theme":"modern-inline"},"slides":{{"type":"images","title":"","data":{"https://s3.gifyu.com/images/AuthorizeGif.gif"}},{"type":"text","title":"","buttons":{{"label":"Done. What's next?","hint":"","action":{"type":"invoke.function","data":{"name":"DiveIn"}},"key":"slash_commands"}},"data":"◈  Your Twilio [Account Sid](https://www.twilio.com/console)\n◈  Twilio [Auth Token](https://www.twilio.com/console)\n◈ Your mobile number that you've used to register twilio\n◈  Your Twilio number. Ignore this step if you have not bought any twilio number"}}});
+}*/
+else if(arguments.get("key").equals("slash_commands"))
+{
+	zoho.cliq.postToBot("twilio",{"text":"*Slash command* :Idea!:","bot":{"name":"Twilio","image":"https://cdn1.imggmi.com/uploads/2019/9/22/3b5524d353b5a8caac6cbbcc532edc20-full.png"},"card":{"title":"### Here's Tip 2/5","theme":"modern-inline"},"slides":{{"type":"images","title":"","data":{"https://s3.gifyu.com/images/NewSlashCommand2.gif"}},{"type":"text","title":"","buttons":{{"label":"Cool. Next?","hint":"","action":{"type":"invoke.function","data":{"name":"DiveIn"}},"key":"message_actions"}},"data":"◈  Use */twilio* to send messages(either text or file) or make calls and alerts from any chat window using any one of the four suggessions.\n◈  Type the numbers or select from contacts just like you send a message in your mobile :wink!:"}}});
+}
+else if(arguments.get("key").equals("message_actions"))
+{
+	zoho.cliq.postToBot("twilio",{"text":"*Message Actions* :Grinning!:","bot":{"name":"Twilio","image":"https://cdn1.imggmi.com/uploads/2019/9/22/3b5524d353b5a8caac6cbbcc532edc20-full.png"},"card":{"title":"### Tip 3/5","theme":"modern-inline"},"slides":{{"type":"images","title":"","data":{"https://s3.gifyu.com/images/NewMessageAction.gif"}},{"type":"text","title":"","buttons":{{"label":"So, what tip's next?","hint":"","action":{"type":"invoke.function","data":{"name":"DiveIn"}},"key":"schedulers"}},"data":"◈  Have you sent a *direct message* to a member, and felt the member's offline?\n◈  Have you sent a message in a channel, bot or group chat by *mentioning members* , and didn't get reply from those members? :sad!: \n  ✔ Use message actions, either *\"Send as sms\"* or *\"Inform through call\"*, to inform the message offline.\n  ✔ Message actions can be performed on text *messages* and *links* .\n\n*Note:* :Report: The members to whom you wish to send sms/make call, must have authorized their twilio account in cliq like you've did :happy!:"}}});
+}
+else if(arguments.get("key").equals("schedulers"))
+{
+	zoho.cliq.postToBot("twilio",{"text":"*Scheduler* :Awe!:","bot":{"name":"Twilio","image":"https://cdn1.imggmi.com/uploads/2019/9/22/3b5524d353b5a8caac6cbbcc532edc20-full.png"},"card":{"title":"### Tip 4/5","theme":"modern-inline"},"slides":{{"type":"images","title":"","data":{"https://cdn1.imggmi.com/uploads/2019/9/24/2bbe2c294771158057173f39e3918ea9-full.jpg"}},{"type":"text","title":"","buttons":{{"label":"Up next?","hint":"","action":{"type":"invoke.function","data":{"name":"DiveIn"}},"key":"outside_cliq"}},"data":"Scheduler is bundled so as to alert you when:\n ◈ You have any cliq reminders set to trigger today :smile!: "}}});
+}
+else if(arguments.get("key").equals("outside_cliq"))
+{
+	zoho.cliq.postToBot("twilio",{"text":"*Two-way communication* :Idea!:","bot":{"name":"Twilio","image":"https://cdn1.imggmi.com/uploads/2019/9/22/3b5524d353b5a8caac6cbbcc532edc20-full.png"},"card":{"title":"### Tip 5/5","theme":"modern-inline"},"slides":{{"type":"images","title":"","data":{"https://s3.gifyu.com/images/NewTwoWayComm.gif"}},{"type":"text","title":"","buttons":{{"label":"I've got everything!","hint":"","action":{"type":"invoke.function","data":{"name":"DiveIn"}},"key":"completed"}},"data":"✔  You can now create *quick reminders* in Cliq even without logging in, so that i can remember it and let you know during your busy schedule :Smile!:\n✔  You can also *add a contact* to your Twilio extension's database just like you add contact in your mobile. That easy i am :Wink!:\n✔  Any Doubt? Never keep typing! Call your Twilio number and talk to me to clarify your doubts :wink!:"}}});
+}
+else if(arguments.get("key").equals("completed"))
+{
+	botMap = Map();
+	botMap.put("text","*So that's how Twilio makes sms and calls so easy from Cliq!* :Love!: \nCome say a \"Hi\" to start using Twilio! :grinning!:");
+	bot = Map();
+	bot.put("name","Twilio");
+	bot.put("image","https://cdn1.imggmi.com/uploads/2019/9/22/3b5524d353b5a8caac6cbbcc532edc20-full.png");
+	botMap.put("bot",bot);
+	card = Map();
+	card.put("theme","prompt");
+	botMap.put("card",card);
+	zoho.cliq.postToBot("twilio",botMap);
+}
+return response;
