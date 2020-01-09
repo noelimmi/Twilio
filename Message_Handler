@@ -1,0 +1,231 @@
+
+response = Map();
+if(message.containsIgnoreCase("HI") || message.containsIgnoreCase("HEY") || message.containsIgnoreCase("HELLO"))
+{
+	text = "Hey " + user.get("first_name") + "! What help can i do today? :happy!:";
+	response.put("suggestions",{"list":{{"text":"Inform Message"},{"text":"Manage Contacts"},{"text":"Update Credentials"},{"text":"Help"}}});
+	response.put("text",text);
+}
+else if(message.containsIgnoreCase("THANKS") || message.containsIgnoreCase("THANK YOU") || message.containsIgnoreCase("GREAT") || message.containsIgnoreCase("GREAT JOB") || message.containsIgnoreCase("NICE") || message.containsIgnoreCase("NICE ONE"))
+{
+	text = "Glad to hear that " + user.get("first_name") + " :grinning!:";
+	response.put("text",text);
+}
+else if(message.equalsIgnoreCase("INFORM MESSAGE") || message.equalsIgnoreCase("INFORM"))
+{
+	text = "I have pretty cool methods of communicating :cool!: Choose one!";
+	response.put("suggestions",{"list":{{"text":"Send Text Sms"},{"text":"Send File as Sms"},{"text":"Make Programmed Call"},{"text":"Send File & Alert Receiver"}}});
+	response.put("text",text);
+}
+else if(message.equalsIgnoreCase("SEND TEXT SMS") || message.equalsIgnoreCase("TEXT SMS"))
+{
+	context = {"id":"sms","timeout":"300","params":{{"name":"enterOrChoose","question":"Do you want to directly enter the number or choose from your contacts?","suggestions":{"list":{{"text":"Directly enter numbers"},{"text":"Choose from contacts"}}}}}};
+	response.put("context",context);
+}
+else if(message.equalsIgnoreCase("SEND FILE AS SMS") || message.equalsIgnoreCase("SEND FILE"))
+{
+	context = {"id":"file","timeout":"300","params":{{"name":"enterOrChoose","question":"Do you want to directly enter the number or choose from your contacts?","suggestions":{"list":{{"text":"Directly enter numbers"},{"text":"Choose from contacts"}}}}}};
+	response.put("context",context);
+}
+else if(message.equalsIgnoreCase("MAKE PROGRAMMED CALL") || message.equalsIgnoreCase("CALL"))
+{
+	context = {"id":"call","timeout":"300","params":{{"name":"enterOrChoose","question":"Do you want to directly enter the number or choose from your contacts?","suggestions":{"list":{{"text":"Directly enter numbers"},{"text":"Choose from contacts"}}}}}};
+	response.put("context",context);
+}
+else if(message.containsIgnoreCase("ALERT RECEIVER"))
+{
+	context = {"id":"alert","timeout":"300","params":{{"name":"enterOrChoose","question":"Do you want to directly enter the number or choose from your contacts?","suggestions":{"list":{{"text":"Directly enter numbers"},{"text":"Choose from contacts"}}}}}};
+	response.put("context",context);
+}
+else if(message.equalsIgnoreCase("UPDATE CREDENTIALS") || message.equalsIgnoreCase("UPDATE"))
+{
+	text = "Which one do you need to update? :Thinking!:";
+	response.put("suggestions",{"list":{{"text":"Account Sid"},{"text":"Auth Token"},{"text":"My number"},{"text":"Twilio number"},{"text":"Two-way Messaging"},{"text":"Remove Credentials"}}});
+	response.put("text",text);
+}
+else if(message.equalsIgnoreCase("TWO-WAY MESSAGING"))
+{
+	query_map = Map();
+	criteria_string = "userid==" + user.get("id") + " && choice==FALSE";
+	query_map.put("criteria",criteria_string);
+	response_map = zoho.cliq.getRecords("twowaycommunication",query_map,"databaseaccess");
+	if(response_map.get("status").equalsIgnoreCase("SUCCESS") && response_map.get("list").size() > 0)
+	{
+		text = "Using Two-way messaging, you can start receiving sms right within cliq! :Cool!: ";
+		response.put("suggestions",{"list":{{"text":"Let me try!"}}});
+	}
+	else
+	{
+		query_map = Map();
+		criteria_string = "userid==" + user.get("id") + " && choice==TRUE";
+		query_map.put("criteria",criteria_string);
+		response_map = zoho.cliq.getRecords("twowaycommunication",query_map,"databaseaccess");
+		if(response_map.get("status").equalsIgnoreCase("SUCCESS") && response_map.get("list").size() > 0)
+		{
+			text = "Two-way messaging is enabled! From whom do you wish to receive sms? :Thinking!:";
+			response.put("suggestions",{"list":{{"text":"Everyone"},{"text":"Contacts"},{"text":"No one"},{"text":"Disable Two-way"}}});
+		}
+		else
+		{
+			text = "Using Two-way messaging, you can start receiving sms right within cliq! :Cool!: ";
+			response.put("suggestions",{"list":{{"text":"Let me try!"}}});
+		}
+	}
+	response.put("text",text);
+}
+else if(message.equalsIgnoreCase("LET ME TRY!"))
+{
+	return {"text":"You need to allow access to enable two-way messaging!","buttons":{{"label":"Enable two-way","type":"+","action":{"type":"invoke.function","data":{"name":"ZapiAuthentication"},"confirm":{"title":"Twilio two-way communication","description":"Make things happen in Cliq by just sending sms","input":{"type":"user_webhook_token"}}}}}};
+}
+else if(message.equalsIgnoreCase("DISABLE TWO-WAY"))
+{
+	return {"text":"Are you sure to disable two-way messaging?","buttons":{{"label":"Disable two-way","type":"-","action":{"type":"invoke.function","data":{"name":"ZapiAuthentication"},"confirm":{"title":"Twilio two-way communication","description":"You cannot send/receive sms and make calls to your twilio number anymore."}}}}};
+}
+else if(message.equalsIgnoreCase("EVERYONE"))
+{
+	values_map = Map();
+	values_map.put("receivefrom","everyone");
+	query_map = Map();
+	criteria_string = "userid==" + user.get("id") + " && choice==TRUE";
+	query_map.put("criteria",criteria_string);
+	response_map = zoho.cliq.getRecords("twowaycommunication",query_map,"databaseaccess");
+	if(response_map.get("status").equalsIgnoreCase("SUCCESS") && response_map.get("list").size() > 0)
+	{
+		record_id = response_map.get("list").get(0).get("id");
+		zoho.cliq.updateRecord("twowaycommunication",record_id,values_map);
+		text = "Yay! You can receive notification in Cliq when you receive sms from anyone :Peace!:";
+		response.put("text",text);
+	}
+}
+else if(message.equalsIgnoreCase("CONTACTS"))
+{
+	values_map = Map();
+	values_map.put("receivefrom","contacts");
+	query_map = Map();
+	criteria_string = "userid==" + user.get("id") + " && choice==TRUE";
+	query_map.put("criteria",criteria_string);
+	response_map = zoho.cliq.getRecords("twowaycommunication",query_map,"databaseaccess");
+	if(response_map.get("status").equalsIgnoreCase("SUCCESS") && response_map.get("list").size() > 0)
+	{
+		record_id = response_map.get("list").get(0).get("id");
+		zoho.cliq.updateRecord("twowaycommunication",record_id,values_map);
+		text = "Yay! You can receive notification in Cliq when you receive sms from your contacts :Curious!:";
+		response.put("text",text);
+	}
+}
+else if(message.equalsIgnoreCase("NO ONE"))
+{
+	values_map = Map();
+	values_map.put("receivefrom","no one");
+	query_map = Map();
+	criteria_string = "userid==" + user.get("id") + " && choice==TRUE";
+	query_map.put("criteria",criteria_string);
+	response_map = zoho.cliq.getRecords("twowaycommunication",query_map,"databaseaccess");
+	if(response_map.get("status").equalsIgnoreCase("SUCCESS") && response_map.get("list").size() > 0)
+	{
+		record_id = response_map.get("list").get(0).get("id");
+		zoho.cliq.updateRecord("twowaycommunication",record_id,values_map);
+		text = "Done :ThumbsUp: You will not receive notification in Cliq when you receive sms :Curious!:";
+		response.put("text",text);
+	}
+}
+else if(message.equalsIgnoreCase("ACCOUNT SID"))
+{
+	context = {"id":"accountsid_details","timeout":"300","params":{{"name":"sid","question":"Enter your new Twilio Account Sid"},{"name":"confirm","question":"Are you sure to update your Twilio account Sid? (Yes/No)","suggestions":{"list":{{"text":"Yes, change it!"},{"text":"No, not now!"}}}}}};
+	response.put("context",context);
+}
+else if(message.equalsIgnoreCase("AUTH TOKEN"))
+{
+	context = {"id":"authtoken_details","timeout":"300","params":{{"name":"auth","question":"Enter your new Twilio Auth Token"},{"name":"confirm","question":"Are you sure to update your Twilio auth token? (Yes/No)","suggestions":{"list":{{"text":"Yes, change it!"},{"text":"No, not now!"}}}}}};
+	response.put("context",context);
+}
+else if(message.equalsIgnoreCase("MY NUMBER"))
+{
+	context = {"id":"usernumber_details","timeout":"300","params":{{"name":"usernum","question":"Enter your new mobile number"},{"name":"confirm","question":"Are you sure to update your mobile number? (Yes/No)","suggestions":{"list":{{"text":"Yes, change it!"},{"text":"No, not now!"}}}}}};
+	response.put("context",context);
+}
+else if(message.equalsIgnoreCase("TWILIO NUMBER"))
+{
+	context = {"id":"twilionumber_details","timeout":"300","params":{{"name":"twilionum","question":"Enter your new Twilio number"},{"name":"confirm","question":"Are you sure to update your Twilio number? (Yes/No)","suggestions":{"list":{{"text":"Yes, change it!"},{"text":"No, not now!"}}}}}};
+	response.put("context",context);
+}
+else if(message.equalsIgnoreCase("MANAGE CONTACTS"))
+{
+	text = "What would you like to do? :wink!:";
+	response.put("suggestions",{"list":{{"text":"Add contact"},{"text":"Update Contact"}}});
+	response.put("text",text);
+}
+else if(message.equalsIgnoreCase("ADD CONTACT"))
+{
+	context = {"id":"add_contact","timeout":"300","params":{{"name":"contact_name","question":"What's the name of the contact?"},{"name":"contact_number","question":"Enter the number of the contact excluding the country code(+91)"},{"name":"confirm","question":"Are you sure to add this contact? (Yes/No)","suggestions":{"list":{{"text":"Yes, add it!"},{"text":"No, not now!"}}}}}};
+	response.put("context",context);
+}
+else if(message.equalsIgnoreCase("UPDATE CONTACT"))
+{
+	rows = List();
+	contact_query = Map();
+	criteria_string = "addedby==" + user.get("id");
+	contact_query.put("criteria",criteria_string);
+	check_contacts_db = zoho.cliq.getRecords("contacts",contact_query);
+	if(check_contacts_db.get("status").equalsIgnoreCase("SUCCESS") && check_contacts_db.get("list").size() > 0)
+	{
+		contactsList = check_contacts_db.get("list");
+		for each  contact in contactsList
+		{
+			name = contact.get("name");
+			number = contact.get("number");
+			row = Map();
+			row.put("Contact Name",name);
+			row.put("Mobile Number",number);
+			row.put("Updation","[+Update](invoke.function|ManageContacts|" + user.get("email") + "|" + contact.get("id") + ",update)");
+			row.put("Action","[+Delete](invoke.function|ManageContacts|" + user.get("email") + "|" + contact.get("id") + ",delete)");
+			rows.add(row);
+		}
+		msg = {"text":"Hey there, your list of contacts is here!","bot":{"name":"Twilio","image":"https://cdn1.imggmi.com/uploads/2019/9/22/3b5524d353b5a8caac6cbbcc532edc20-full.png"},"slides":{{"type":"table","title":"Contacts","data":{"headers":{"Contact Name","Mobile Number","Updation","Action"},"rows":rows}}}};
+		info msg;
+	}
+	else
+	{
+		msg = {"text":"Looks like there are no contacts you've added yet! :Search!:","bot":{"name":"Twilio","image":"https://cdn1.imggmi.com/uploads/2019/9/22/3b5524d353b5a8caac6cbbcc532edc20-full.png"},"card":{"theme":"modern-inline"}};
+	}
+	return msg;
+}
+else if(message.equalsIgnoreCase("HELP"))
+{
+	authMap = Map();
+	authMap.put("text","Hey " + user.get("first_name") + "! I'm here to help you out. Let's take a deep dive into the features and how-to-use mantra with 5 Tips! :Peace!: ");
+	bot = Map();
+	bot.put("name","Twilio");
+	bot.put("image","https://cdn1.imggmi.com/uploads/2019/9/22/3b5524d353b5a8caac6cbbcc532edc20-full.png");
+	authMap.put("bot",bot);
+	card = Map();
+	card.put("theme","prompt");
+	card.put("title","Twilio Help");
+	card.put("thumbnail","https://s3.amazonaws.com/com.twilio.prod.twilio-docs/images/twilio-mark-red.width-808.png");
+	authMap.put("card",card);
+	buttonsList = list();
+	buttonsList0 = Map();
+	buttonsList0.put("label","Dive in!");
+	buttonsList0.put("type","+");
+	action = Map();
+	action.put("type","invoke.function");
+	data = Map();
+	data.put("name","DiveIn");
+	action.put("data",data);
+	buttonsList0.put("action",action);
+	buttonsList0.put("key","dive_in_button");
+	buttonsList.add(buttonsList0);
+	authMap.put("buttons",buttonsList);
+	return authMap;
+}
+else if(message.equalsIgnoreCase("REMOVE CREDENTIALS"))
+{
+	return {"text":"### Are you sure? :Curious!: \nPlease read our documentation before your decision.","bot":{"name":"Twilio","image":"https://cdn1.imggmi.com/uploads/2019/9/22/3b5524d353b5a8caac6cbbcc532edc20-full.png"},"card":{"thumbnail":"https://s3.amazonaws.com/com.twilio.prod.twilio-docs/images/twilio-mark-red.width-808.png","theme":"modern-inline"},"slides":{{"type":"text","title":"Delete Credentials","buttons":{{"label":"YES, DELETE!","hint":"","type":"-","action":{"type":"invoke.function","data":{"name":"DeleteCredentials"}},"key":"delete"},{"label":"NO, WAIT!","hint":"","type":"+","action":{"type":"invoke.function","data":{"name":"DeleteCredentials"}},"key":"wait"}},"data":"If you delete your credentials which you've used to authorize your Twilio account in Cliq, you will no longer be able to use the features of Twilio extension such as, Sending messages, making calls from any component in this extension. :sad: \n     Also, your webhooks will be unregistered from your Twilio account, so that you cannot send/receive sms,make calls from the extension. \n     But, you can authorize once again if you wish to use the extension again :smile:\n\nAre you sure to delete your Twilio credentials from Cliq?"}}};
+}
+else
+{
+	text = "Have your mates missed out meetings, project due dates or any important message? Never make them miss another when i'm here :wink!:";
+	response.put("suggestions",{"list":{{"text":"Inform Message"},{"text":"Manage Contacts"},{"text":"Update Credentials"},{"text":"Help"}}});
+	response.put("text",text);
+}
+return response;
