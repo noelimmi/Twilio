@@ -1,0 +1,35 @@
+
+response = Map();
+if(newuser)
+{
+	authMap = Map();
+	authMap.put("text","Hey " + user.get("first_name") + "! Thanks for installing. Let's take a deep dive into the features and how-to-use mantra with 5 Tips! :Peace!: ");
+	bot = Map();
+	bot.put("name","Twilio");
+	bot.put("image","https://s3.amazonaws.com/com.twilio.prod.twilio-docs/images/twilio-mark-red.width-808.png");
+	authMap.put("bot",bot);
+	card = Map();
+	card.put("theme","prompt");
+	card.put("title","Welcome to Twilio!");
+	card.put("thumbnail","https://s3.amazonaws.com/com.twilio.prod.twilio-docs/images/twilio-mark-red.width-808.png");
+	authMap.put("card",card);
+	buttonsList = list();
+	buttonsList0 = Map();
+	buttonsList0.put("label","Dive in!");
+	buttonsList0.put("type","+");
+	action = Map();
+	action.put("type","invoke.function");
+	data = Map();
+	data.put("name","DiveIn");
+	action.put("data",data);
+	buttonsList0.put("action",action);
+	buttonsList0.put("key","dive_in_button");
+	buttonsList.add(buttonsList0);
+	authMap.put("buttons",buttonsList);
+	return authMap;
+}
+else
+{
+	response.put("text","Woohoo! Glad that you subscribed back! :wink: \nTake your communication to the next level using Twilio Bot :idea:");
+}
+return response;
