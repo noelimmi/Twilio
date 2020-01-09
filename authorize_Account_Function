@@ -1,0 +1,204 @@
+
+response = Map();
+accountsid = form.get("values").get("accountsid");
+authtoken = form.get("values").get("authtoken");
+usernumber = form.get("values").get("usernumber");
+//check if the usernumber already exist in database under someone's id
+preCheckMap = Map();
+criteria_string = "usernumber==" + usernumber;
+preCheckMap.put("criteria",criteria_string);
+check_existing_cred = zoho.cliq.getRecords("twiliodetails",preCheckMap);
+if(check_existing_cred.get("status").equalsIgnoreCase("SUCCESS") && check_existing_cred.get("list").size() > 0)
+{
+	return {"type":"form_error","text":"Uh-oh! Unexpected input","inputs":{"usernumber":"Already used by one of your organization members"}};
+}
+//check if the twilionumber already exist in database under someone's id
+if(form.get("values").get("existingtwilionumber").length() > 0)
+{
+	criteria_string = "twilionumber==" + form.get("values").get("existingtwilionumber");
+	preCheckMap.put("criteria",criteria_string);
+	check_existing_cred = zoho.cliq.getRecords("twiliodetails",preCheckMap);
+	if(check_existing_cred.get("status").equalsIgnoreCase("SUCCESS") && check_existing_cred.get("list").size() > 0)
+	{
+		return {"type":"form_error","text":"Uh-oh! Unexpected input","inputs":{"existingtwilionumber":"Already used by one of your organization members"}};
+	}
+}
+//If usernumber contains country code
+if(!usernumber.matches("[0-9]{10}"))
+{
+	return {"type":"form_error","text":"Uh-oh! Unexpected input","inputs":{"usernumber":"Enter your 10 digit mobile number"}};
+}
+if(form.get("values").get("existingtwilionumber").length() > 0)
+{
+	if(!form.get("values").get("existingtwilionumber").contains("+"))
+	{
+		return {"type":"form_error","text":"Uh-oh! Unexpected input","inputs":{"existingtwilionumber":"Include country code of your Twilio number"}};
+	}
+}
+//check if account credentials are true
+header = Map();
+header.put("Authorization","Basic " + zoho.encryption.base64Encode(accountsid + ":" + authtoken));
+check = invokeurl
+[
+	url :"https://api.twilio.com/2010-04-01/Accounts.json"
+	type :GET
+	headers:header
+];
+try 
+{
+	if(check.toMap().get("accounts").toList().get(0).toMap().get("status").equals("active"))
+	{
+		//Check if user already has a twilio number
+		if(form.get("values").get("existingtwilionumber").length() > 0)
+		{
+			twilioNumber = form.get("values").get("existingtwilionumber");
+			//register webhook
+			numMap = Map();
+			numMap.put("PhoneNumber",twilioNumber);
+			//Get existing phone number's sid
+			phonesid = invokeurl
+			[
+				url :"https://api.twilio.com/2010-04-01/Accounts/" + accountsid + "/IncomingPhoneNumbers.json"
+				type :GET
+				headers:header
+			];
+			try 
+			{
+				phoneNumbersList = phonesid.get("incoming_phone_numbers").toList();
+			}
+ catch (e)
+			{				response.put("text","Please give a valid twilio number!");
+				return response;
+			}
+			flag = 0;
+			if(phoneNumbersList.size() == 0)
+			{
+				response.put("text","The twilio number you provided is incorrect. Try again.");
+				return response;
+			}
+			else
+			{
+				for each  phoneNumber in phoneNumbersList
+				{
+					if(phoneNumber.get("phone_number").equals(twilioNumber) && phoneNumber.get("status").equals("in-use"))
+					{
+						flag = 1;
+						break;
+					}
+				}
+				if(flag == 0)
+				{
+					response.put("text","The Twilio number your provided isn't correct! Try again.");
+					return response;
+				}
+				else
+				{
+					//authorized
+					//insert credentials into twilio database
+					values_map = Map();
+					values_map.put("usernumber",usernumber);
+					values_map.put("twilionumber",twilioNumber);
+					values_map.put("userid",user.get("id"));
+					values_map.put("accountsid",accountsid);
+					values_map.put("authtoken",authtoken);
+					db = zoho.cliq.createRecord("twiliodetails",values_map);
+					//Card to show twilio number to user ON SUCCESS
+					if(db.get("status").equals("SUCCESS"))
+					{
+						response.put("text","You have successfully authorized your Twilio account in Cliq. Use your twilio number \n#### " + twilioNumber + " \n to send sms or make calls\nStart using Twilio now :cool!: ");
+						card = Map();
+						card.put("theme","prompt");
+						card.put("title","Twilio Authorization Success");
+						card.put("thumbnail","https://s3.amazonaws.com/com.twilio.prod.twilio-docs/images/twilio-mark-red.width-808.png");
+						response.put("card",card);
+					}
+					else
+					{
+						response.put("text",db.get("message"));
+					}
+				}
+			}
+		}
+		//If user doesn't have any twilio numbers
+		else
+		{
+			//search a new trial number
+			getnumber = invokeurl
+			[
+				url :"https://api.twilio.com/2010-04-01/Accounts/" + accountsid + "/AvailablePhoneNumbers/US/Local.json?smsEnabled=true&voiceEnabled=true&PageSize=20"
+				type :GET
+				headers:header
+			];
+			twilioNumber = getnumber.toMap().get("available_phone_numbers").toList().get(0).toMap().get("phone_number");
+			//register webhook
+			numMap = Map();
+			numMap.put("PhoneNumber",twilioNumber);
+			//but trial number which is searched above and register webhooks as well
+			buynumber = invokeurl
+			[
+				url :"https://api.twilio.com/2010-04-01/Accounts/" + accountsid + "/IncomingPhoneNumbers.json"
+				type :POST
+				parameters:numMap
+				headers:header
+			];
+			//if number is bought successfully
+			if(buynumber.toMap().get("status").equals("in-use"))
+			{
+				//insert credentials into database
+				values_map = Map();
+				values_map.put("usernumber",usernumber);
+				values_map.put("twilionumber",twilioNumber);
+				values_map.put("userid",user.get("id"));
+				values_map.put("accountsid",accountsid);
+				values_map.put("authtoken",authtoken);
+				db = zoho.cliq.createRecord("twiliodetails",values_map);
+				//Card to show twilio number to user ON SUCCESS
+				if(db.get("status").equals("SUCCESS"))
+				{
+					response.put("text","This is your *Twilio Number* \n#### " + twilioNumber + " \n Save this number for future use :smile!: \nYour number is also available in [twilio](https://www.twilio.com/console) \nNow start using Twilio Bot :cool!: ");
+					card = Map();
+					card.put("theme","prompt");
+					card.put("title","Twilio Authorization Success");
+					card.put("thumbnail","https://s3.amazonaws.com/com.twilio.prod.twilio-docs/images/twilio-mark-red.width-808.png");
+					response.put("card",card);
+				}
+				else
+				{
+					response.put("text",db.get("message"));
+				}
+			}
+			else
+			{
+				response.put("text","Some error occured:( Try again.");
+			}
+		}
+	}
+	else
+	{
+		//inform that the credentials are wrong
+		response.put("text","Your credentials are not matching your twilio account :( Try again");
+	}
+}
+ catch (e)
+{	return {"type":"form_error","text":"Uh-oh! Account Sid or Auth Token incorrect"};
+	/*response.put("text","Maybe your credentials are not matching your twilio account. Try again :(");
+	card = Map();
+	card.put("theme","prompt");
+	card.put("title","Twilio Authorization Error");
+	card.put("thumbnail","https://s3.amazonaws.com/com.twilio.prod.twilio-docs/images/twilio-mark-red.width-808.png");
+	response.put("card",card);
+	buttonsList = list();
+	buttonsList0 = Map();
+	buttonsList0.put("label","Try Again");
+	buttonsList0.put("type","+");
+	action = Map();
+	action.put("type","invoke.function");
+	data = Map();
+	data.put("name","twilioForm");
+	action.put("data",data);
+	buttonsList0.put("action",action);
+	buttonsList0.put("key","authorizeButton");
+	buttonsList.add(buttonsList0);
+	response.put("buttons",buttonsList);*/
+}
+return response;
